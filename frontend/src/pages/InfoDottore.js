@@ -1,6 +1,5 @@
 import { useState,useContext,useEffect } from "react";
 import axios from 'axios';
-import { useNavigate } from "react-router-dom";
 import { AuthContext } from '../context/AuthContext';
 import { useParams } from "react-router-dom";
 import io from 'socket.io-client';
@@ -13,14 +12,14 @@ const InfoDottore = () =>{
  const {token} = useContext(AuthContext);
  const [slotDottore,setSlotDottore] = useState([]);   
  useEffect(()=> {
-  axios.get(`http://localhost:5001/api/slot/${id}`)
+  axios.get(`http://${process.env.REACT_APP_API_URL}/api/slot/${id}`)
   .then(risp =>{
     setSlotDottore(risp.data);
   });
  },[id]);
  const prenotaSlot = async(slotId)=>{
   try{
-  await axios.post('http://localhost:5001/api/prenotazioni',{slotId: slotId},
+  await axios.post(`http://${process.env.REACT_APP_API_URL}/api/prenotazioni`,{slotId: slotId},
     {
       headers:{
         Authorization: `Bearer ${token}`

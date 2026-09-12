@@ -1,7 +1,6 @@
-import { useState,useContext } from "react";
+import { useState } from "react";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from '../context/AuthContext';
 import { MenuItem, Select, TextField,Button, Box  } from "@mui/material";
 
 
@@ -12,7 +11,7 @@ const Registrazione = () => {
  const eseguiRegistrazione = async(evento) =>{
   try{   
    evento.preventDefault();
-   const risp = await axios.post(`http://${process.env.REACT_APP_API_URL}/api/aute/registrazione`,{
+    await axios.post(`http://${process.env.REACT_APP_API_URL}/api/aute/registrazione`,{
     nome: form.nome,
     cognome: form.cognome,
     email: form.email,

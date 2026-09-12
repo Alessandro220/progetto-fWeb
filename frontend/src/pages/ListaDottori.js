@@ -1,6 +1,6 @@
-import {useState,useEffect, Children} from 'react';
+import {useState,useEffect} from 'react';
 import axios from 'axios';
-import {Link, useParams} from 'react-router-dom';
+import {Link} from 'react-router-dom';
 import { Card, CardContent, Typography, Button, Box } from '@mui/material';
 
 const ListaDottori = ()=>{

@@ -11,7 +11,7 @@ const Registrazione = () => {
  const eseguiRegistrazione = async(evento) =>{
   try{   
    evento.preventDefault();
-    await axios.post(`http://${process.env.REACT_APP_API_URL}/api/aute/registrazione`,{
+    await axios.post(`${process.env.REACT_APP_API_URL}/api/aute/registrazione`,{
     nome: form.nome,
     cognome: form.cognome,
     email: form.email,

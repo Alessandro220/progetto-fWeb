@@ -7,7 +7,7 @@ const MiePrenotazioni = () =>{
     const [statPreno,setStatoPreno] = useState([]);
     const {token} = useContext(AuthContext);
     useEffect(()=>{
-      axios.get(`http://${process.env.REACT_APP_API_URL}/api/prenotazioni`,
+      axios.get(`${process.env.REACT_APP_API_URL}/api/prenotazioni`,
         {
             headers:{
                 Authorization: `Bearer ${token}`
@@ -19,7 +19,7 @@ const MiePrenotazioni = () =>{
      });
     },[token]);
     const cancellaPrenotazione = async (prenotazioneId) => {
-     await axios.delete(`http://${process.env.REACT_APP_API_URL}/api/prenotazioni/${prenotazioneId}`,{
+     await axios.delete(`${process.env.REACT_APP_API_URL}/api/prenotazioni/${prenotazioneId}`,{
         headers:{
             Authorization: `Bearer ${token}`
         }

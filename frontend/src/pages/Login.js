@@ -12,7 +12,7 @@ const Login = () => {
     const eseguiLogin= async (evento)=>{
         try{
          evento.preventDefault(); //elimino comportamento default del browser
-         const risp = await axios.post(`http://${process.env.REACT_APP_API_URL}/api/aute/login`,{
+         const risp = await axios.post(`${process.env.REACT_APP_API_URL}/api/aute/login`,{
            email: email,
            password: password
          });

@@ -12,14 +12,14 @@ const InfoDottore = () =>{
  const {token} = useContext(AuthContext);
  const [slotDottore,setSlotDottore] = useState([]);   
  useEffect(()=> {
-  axios.get(`http://${process.env.REACT_APP_API_URL}/api/slot/${id}`)
+  axios.get(`${process.env.REACT_APP_API_URL}/api/slot/${id}`)
   .then(risp =>{
     setSlotDottore(risp.data);
   });
  },[id]);
  const prenotaSlot = async(slotId)=>{
   try{
-  await axios.post(`http://${process.env.REACT_APP_API_URL}/api/prenotazioni`,{slotId: slotId},
+  await axios.post(`${process.env.REACT_APP_API_URL}/api/prenotazioni`,{slotId: slotId},
     {
       headers:{
         Authorization: `Bearer ${token}`
@@ -30,7 +30,7 @@ const InfoDottore = () =>{
   }
  }
  useEffect(()=>{
-  const socket = io(`http://${process.env.REACT_APP_API_URL}`);
+  const socket = io(`${process.env.REACT_APP_API_URL}`);
   socket.emit('entraStanza',id);
   socket.on('slotAggiornato',(slotAggiornato)=>{
     console.log('Evento slotAggiornato ricevuto:', slotAggiornato);

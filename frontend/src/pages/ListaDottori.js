@@ -6,7 +6,7 @@ import { Card, CardContent, Typography, Box } from '@mui/material';
 const ListaDottori = ()=>{
     const [dottori,setDottori] = useState([]);
     useEffect(() => {
-     axios.get(`http://${process.env.REACT_APP_API_URL}/api/dottori`)
+     axios.get(`${process.env.REACT_APP_API_URL}/api/dottori`)
      .then(risposta => {
         setDottori(risposta.data);
      });

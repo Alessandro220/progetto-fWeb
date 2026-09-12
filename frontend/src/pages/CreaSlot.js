@@ -11,7 +11,7 @@ const CreaSlot = () =>{
  const invio = async(evento)=>{
  try{
   evento.preventDefault();
-  await axios.post(`http://${process.env.REACT_APP_API_URL}/api/slot`,{dataOra:dataOra},{
+  await axios.post(`${process.env.REACT_APP_API_URL}/api/slot`,{dataOra:dataOra},{
      headers:{
          Authorization: `Bearer ${token}`
      }

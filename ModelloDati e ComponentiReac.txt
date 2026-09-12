@@ -1,0 +1,19 @@
+Modello dei dati
+Il database MongoDB è composto da quattro collezioni:
+
+Utente — rappresenta chiunque si registri, paziente o dottore. Campi: nome, cognome, email (univoca), numero (univoco), password (hash bcrypt), ruolo (enum: paziente, dottore).
+Dottore — informazioni professionali di un utente con ruolo dottore Campi: utente (riferimento a Utente), specializzazione.
+Slot — una fascia oraria che un dottore rende disponibile. Campi: dottore (riferimento a Dottore), dataOra, disponibile (default true).
+Prenotazione — collega un paziente a uno slot. L'esistenza del documento indica che è attiva alla cancellazione viene eliminata e lo slot torna disponibile,per evitare problemi di consistenza dati si è evitato di aggiungere anche qui uno stato. Campi: paziente (riferimento a Utente), slot (riferimento a Slot).
+Relazioni: Utente ha al più un Dottore → Dottore crea molti Slot → uno Slot ha al più una Prenotazione attiva → una Prenotazione appartiene a un Utente con ruolo paziente.
+
+Componenti React
+context/AuthContext.js — Context globale per l'autenticazione. AuthProvider mantiene in memoria l'utente loggato e l'access token e esporta funzioni di login e logout. Contiene anche l'interceptor Axios che intercetta le risposte 401, tenta il refresh automatico del token.
+components/Navbar.js — barra di navigazione sempre visibile, con link diversi in base allo stato di login e al ruolo.
+components/Protezione.js — componente "wrapper" che avvolge le rotte riservate: se non c'è un utente loggato nel Context, reindirizza a /login invece di mostrare la pagina richiesta.
+pages/Login.js — form di accesso che al successo salva utente e token nel Context e naviga alla home.
+pages/Registrazione.js — form di registrazione con campo condizionale (la specializzazione appare solo se il ruolo scelto è "dottore").
+pages/ListaDottori.js — recupera ed elenca tutti i dottori, ciascuno cliccabile per accedere al proprio dettaglio.
+pages/InfoDottore.js — mostra gli slot disponibili di un dottore ,permette la prenotazione, e si collega a Socket.IO per aggiornare la lista in tempo reale quando uno slot viene prenotato da un altro utente.
+pages/MiePrenotazioni.js — rotta protetta che mostra le prenotazioni dell'utente loggato (proprie se paziente, ricevute se dottore) con possibilità di cancellazione.
+pages/CreaSlot.js — rotta protetta, riservata ai dottori; form per creare un nuovo slot disponibile.

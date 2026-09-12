@@ -1,0 +1,566 @@
+
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API Prenotazione Appuntamenti Medici",
+    "version": "1.0.0",
+    "description": "Documentazione delle API per il progetto di Fondamenti del Web. Sistema di prenotazione appuntamenti tra pazienti e dottori, con autenticazione JWT (access token + refresh token) e aggiornamenti in tempo reale via Socket.IO."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5001",
+      "description": "Server di sviluppo locale"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Autenticazione",
+      "description": "Registrazione, login e rinnovo del token"
+    },
+    {
+      "name": "Dottori",
+      "description": "Visione dell'elenco dottori"
+    },
+    {
+      "name": "Slot",
+      "description": "Creazione e visione delle disponibilità orarie"
+    },
+    {
+      "name": "Prenotazioni",
+      "description": "Creazione, visione e cancellazione delle prenotazioni"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Utente": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "example": "64f3a2b1c9e77a001f8b4567"
+          },
+          "nome": {
+            "type": "string",
+            "example": "Mario"
+          },
+          "cognome": {
+            "type": "string",
+            "example": "Rossi"
+          },
+          "email": {
+            "type": "string",
+            "example": "mario.rossi@test.com"
+          },
+          "numero": {
+            "type": "number",
+            "example": 3331234567
+          },
+          "ruolo": {
+            "type": "string",
+            "enum": [
+              "paziente",
+              "dottore"
+            ]
+          }
+        }
+      },
+      "Dottore": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "utente": {
+            "$ref": "#/components/schemas/Utente"
+          },
+          "specializzazione": {
+            "type": "string",
+            "example": "Cardiologia"
+          }
+        }
+      },
+      "Slot": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "dottore": {
+            "type": "string",
+            "description": "Id del dottore"
+          },
+          "dataOra": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-09-10T10:00:00.000Z"
+          },
+          "disponibile": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "Prenotazione": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string"
+          },
+          "paziente": {
+            "type": "string",
+            "description": "Id del paziente"
+          },
+          "slot": {
+            "$ref": "#/components/schemas/Slot"
+          }
+        }
+      },
+      "Errore": {
+        "type": "object",
+        "properties": {
+          "messaggio": {
+            "type": "string",
+            "example": "Errore, credenziali non valide"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/aute/registrazione": {
+      "post": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "summary": "Registra un nuovo utente dottore/paziente",
+        "description": "Crea un nuovo Utente. Se è un dottore crea automaticamente anche il profilo Dottore con la specializzazione",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "example": "Mario"
+                  },
+                  "cognome": {
+                    "type": "string",
+                    "example": "Rossi"
+                  },
+                  "email": {
+                    "type": "string",
+                    "example": "mario.rossi@test.com"
+                  },
+                  "numero": {
+                    "type": "number",
+                    "example": 123456789
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "1234"
+                  },
+                  "ruolo": {
+                    "type": "string",
+                    "enum": [
+                      "paziente",
+                      "dottore"
+                    ]
+                  },
+                  "specializzazione": {
+                    "type": "string",
+                    "example": "Cardiologia",
+                    "description": "Richiesto solo se ruolo è dottore"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "cognome",
+                  "email",
+                  "numero",
+                  "password",
+                  "ruolo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registrazione avvenuta con successo"
+          },
+          "400": {
+            "description": "Utente già registrato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errore"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/aute/login": {
+      "post": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "summary": "Effettua il login",
+        "description": "Verifica le credenziali e se corrette restituisce un access oken JWT",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "mario.rossi@test.com"
+                  },
+                  "password": {
+                    "type": "string",
+                    "example": "1234"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login riuscito",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "Access token JWT"
+                    },
+                    "infoUtente": {
+                      "$ref": "#/components/schemas/Utente"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Email o password errata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errore"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/aute/refresh": {
+      "post": {
+        "tags": [
+          "Autenticazione"
+        ],
+        "summary": "Rinnova l'access token",
+        "description": "Legge il refresh token dal cookie httpOnly e, se valido, genera un nuovo access token senza richiedere nuovamente le credenziali.",
+        "responses": {
+          "200": {
+            "description": "Nuovo access token generato",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token mancante, non valido o scaduto",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errore"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/dottori": {
+      "get": {
+        "tags": [
+          "Dottori"
+        ],
+        "summary": "Ottiene l'elenco di tutti i dottori",
+        "description": "Restituisce tutti i dottori ",
+        "responses": {
+          "200": {
+            "description": "Elenco dottori",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Dottore"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/slot/": {
+      "post": {
+        "tags": [
+          "Slot"
+        ],
+        "summary": "Crea un nuovo slot disponibile",
+        "description": "Rotta protetta riservata ai dottori. Crea uno slot associato al dottore ",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "dataOra": {
+                    "type": "string",
+                    "format": "date-time",
+                    "example": "2026-09-10T10:00:00"
+                  }
+                },
+                "required": [
+                  "dataOra"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Slot creato con successo"
+          },
+          "403": {
+            "description": "Solo i dottori possono creare slot",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errore"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Profilo dottore non trovato"
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/slot/{dottoreId}": {
+      "get": {
+        "tags": [
+          "Slot"
+        ],
+        "summary": "Ottiene gli slot disponibili di un dottore",
+        "description": "Restituisce solo gli slot  per il dottore indicato.",
+        "parameters": [
+          {
+            "name": "dottoreId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID del documento Dottore"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Elenco slot disponibili",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Slot"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/prenotazioni/": {
+      "post": {
+        "tags": [
+          "Prenotazioni"
+        ],
+        "summary": "Crea una nuova prenotazione",
+        "description": "Rotta protetta riservata ai pazienti. Verifica che lo slot esista e sia disponibile crea la prenotazione e aggiorna lo slot a non disponibile emettendo un evento Socket.IO slotAggiornato",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "slotId": {
+                    "type": "string",
+                    "example": "64f3a2b1c9e77a001f8b4568"
+                  }
+                },
+                "required": [
+                  "slotId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Prenotazione avvenuta con successo"
+          },
+          "400": {
+            "description": "Slot non più disponibile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Errore"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Solo i pazienti possono prenotarsi"
+          },
+          "404": {
+            "description": "Slot non trovato"
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Prenotazioni"
+        ],
+        "summary": "Ottiene le proprie prenotazioni",
+        "description": "Rotta protetta se l'utente è un paziente restituisce le prenotazioni fatte. Se è un dottore restituisce le prenotazioni ricevute sui propri slot.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Elenco prenotazioni",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Prenotazione"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    },
+    "/api/prenotazioni/{id}": {
+      "delete": {
+        "tags": [
+          "Prenotazioni"
+        ],
+        "summary": "Cancella una prenotazione",
+        "description": "Rotta protetta verifica che la prenotazione appartenga al paziente autenticato, la cancella, e rimette lo slot disponibile",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID della prenotazione da cancellare"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prenotazione cancellata con successo"
+          },
+          "403": {
+            "description": "Non puoi cancellare questa prenotazione"
+          },
+          "404": {
+            "description": "Prenotazione non trovata"
+          },
+          "500": {
+            "description": "Errore interno del server"
+          }
+        }
+      }
+    }
+  }
+}

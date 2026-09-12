@@ -18,7 +18,7 @@ const MiePrenotazioni = () =>{
       .then(risposta => {
         setStatoPreno(risposta.data);
      });
-    },[]);
+    },[token]);
     const cancellaPrenotazione = async (prenotazioneId) => {
      await axios.delete(`http://${process.env.REACT_APP_API_URL}/api/prenotazioni/${prenotazioneId}`,{
         headers:{

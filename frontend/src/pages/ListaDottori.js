@@ -1,7 +1,7 @@
 import {useState,useEffect} from 'react';
 import axios from 'axios';
 import {Link} from 'react-router-dom';
-import { Card, CardContent, Typography, Button, Box } from '@mui/material';
+import { Card, CardContent, Typography, Box } from '@mui/material';
 
 const ListaDottori = ()=>{
     const [dottori,setDottori] = useState([]);

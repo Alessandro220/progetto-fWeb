@@ -46,7 +46,7 @@ sockeT.on('connection', (socket) => {
  */
 app.use(socketMiddleware(sockeT));
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: 'https://mydoc12.netlify.app',
   credentials: true
 }));
 app.use(express.json());
